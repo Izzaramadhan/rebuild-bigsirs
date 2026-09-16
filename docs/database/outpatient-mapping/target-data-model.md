@@ -1,0 +1,92 @@
+# Target Data Model (Rancangan)
+
+Berikut adalah ringkasan tabel target untuk modul Outpatient (Rawat Jalan):
+
+| Tabel | Tujuan | Primary Key | Business Key | Foreign Key | Catatan |
+| ----- | ------ | ----------- | ------------ | ----------- | ------- |
+| `patients` | Menyimpan identitas permanen pasien | `id` (bigint) | `medical_record_number`, `nik` | `guarantor_id` | Dipisah dari transaksi kunjungan |
+| `outpatient_registrations` | Pencatatan administratif pendaftaran/booking | `id` (bigint) | `registration_no` | `patient_id`, `guarantor_id`, `polyclinic_id` | Layer pendaftaran awal |
+| `outpatient_admissions` | Kunjungan/admisi pasien ke poliklinik | `id` (bigint) | `admission_no` | `registration_id`, `patient_id`, `polyclinic_id`, `doctor_id`, `guarantor_id` | Layer poli / pelayanan |
+| `polyclinics` | Master unit/poliklinik | `id` (int) | `code` | None | Referensi unit layanan rawat jalan |
+| `medical_personnel` | Master tenaga medis/dokter | `id` (int) | `code_dpjp` / `str` | None | Berisi data dokter dan atribut penunjang |
+| `guarantors` | Master penjamin/asuransi/BPJS | `id` (int) | `code` | None | Sumber pembiayaan |
+| `outpatient_queues` | Antrean pelayanan rawat jalan | `id` (bigint) | `queue_no` | `admission_id`, `polyclinic_id` | Manajemen nomor antrean |
+
+## Definisi Field Usulan per Tabel
+
+### 1. `patients`
+- `id`: bigint, PK, auto increment
+- `medical_record_number`: varchar(50), unique, not null (Nomor Rekam Medis)
+- `nik`: varchar(20), unique index, nullable (Nomor KTP/NIK)
+- `full_name`: varchar(100), not null
+- `gender`: enum('L','P'), nullable
+- `birth_date`: date, nullable
+- `birth_place`: varchar(50), nullable
+- `address`: text, nullable
+- `phone`: varchar(30), nullable
+- `email`: varchar(100), nullable
+- `religion`: varchar(30), nullable
+- `blood_type`: varchar(5), nullable
+- `marital_status`: varchar(30), nullable
+- `default_guarantor_id`: bigint, nullable, FK to guarantors
+- `ihs_id`: varchar(100), nullable (SATUSEHAT ID)
+- `created_at`, `updated_at`, `deleted_at`: timestamp/datetime
+
+### 2. `outpatient_registrations`
+- `id`: bigint, PK, auto increment
+- `registration_no`: varchar(50), unique, not null
+- `patient_id`: bigint, not null, FK to patients
+- `registration_date`: datetime, not null
+- `guarantor_id`: int, nullable, FK to guarantors
+- `bpjs_number`: varchar(50), nullable
+- `channel`: enum('offline','online'), default 'offline'
+- `status`: enum('draft','registered','cancelled'), not null
+- `created_at`, `updated_at`, `deleted_at`
+
+### 3. `outpatient_admissions`
+- `id`: bigint, PK, auto increment
+- `admission_no`: varchar(50), unique, not null
+- `registration_id`: bigint, nullable, FK to outpatient_registrations
+- `patient_id`: bigint, not null, FK to patients
+- `polyclinic_id`: int, not null, FK to polyclinics
+- `doctor_id`: int, nullable, FK to medical_personnel
+- `admission_time`: datetime, not null
+- `discharge_time`: datetime, nullable
+- `entry_mode`: varchar(50), nullable (cara masuk)
+- `status`: enum('waiting','admitted','in_service','completed','cancelled'), not null
+- `created_at`, `updated_at`, `deleted_at`
+
+### 4. `polyclinics`
+- `id`: int, PK, auto increment
+- `code`: varchar(20), unique, not null
+- `name`: varchar(100), not null
+- `type`: varchar(50), not null (misal: rawat-jalan)
+- `bpjs_code`: varchar(50), nullable
+- `is_active`: boolean, default true
+- `created_at`, `updated_at`
+
+### 5. `medical_personnel`
+- `id`: int, PK, auto increment
+- `name`: varchar(100), not null
+- `str_number`: varchar(50), nullable
+- `sip_number`: varchar(50), nullable
+- `dpjp_code`: varchar(50), nullable
+- `is_active`: boolean, default true
+- `created_at`, `updated_at`
+
+### 6. `guarantors`
+- `id`: int, PK, auto increment
+- `code`: varchar(50), nullable
+- `name`: varchar(100), not null
+- `type`: enum('UMUM','BPJS','PRIVATE'), not null
+- `is_active`: boolean, default true
+- `created_at`, `updated_at`
+
+### 7. `outpatient_queues`
+- `id`: bigint, PK, auto increment
+- `admission_id`: bigint, nullable, FK to outpatient_admissions
+- `polyclinic_id`: int, not null, FK to polyclinics
+- `queue_number`: varchar(20), not null
+- `queue_date`: date, not null
+- `status`: int, default 0
+- `created_at`, `updated_at`
