@@ -1,0 +1,70 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+vendor/
+
+# Logs
+*.log
+logs/
+backend/storage/logs/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Cache and build artifacts
+.cache/
+*.cache
+.cache-loader/
+.phpunit.cache/
+backend/bootstrap/cache/*.php
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+frontend/dist/
+frontend/coverage/
+
+# IDE and OS files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Database dumps and backups
+*.sql
+*.dump
+*.bak
+*.backup
+*.db
+*.sqlite
+*.sqlite3
+
+# Local data exports
+/data/**/*.csv
+/data/**/*.xlsx
+/backend/data/**/*.csv
+/backend/data/**/*.xlsx
+/frontend/data/**/*.csv
+/frontend/data/**/*.xlsx
+
+# Credentials and private keys
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+credentials.json
+secrets.json
