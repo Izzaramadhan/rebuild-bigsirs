@@ -4,9 +4,9 @@ Berikut adalah ringkasan tabel target untuk modul Outpatient (Rawat Jalan):
 
 | Tabel | Tujuan | Primary Key | Business Key | Foreign Key | Catatan |
 | ----- | ------ | ----------- | ------------ | ----------- | ------- |
-| `patients` | Menyimpan identitas permanen pasien | `id` (bigint) | `medical_record_number`, `nik` | `guarantor_id` | Dipisah dari transaksi kunjungan |
-| `outpatient_registrations` | Pencatatan administratif pendaftaran/booking | `id` (bigint) | `registration_no` | `patient_id`, `guarantor_id`, `polyclinic_id` | Layer pendaftaran awal |
-| `outpatient_admissions` | Kunjungan/admisi pasien ke poliklinik | `id` (bigint) | `admission_no` | `registration_id`, `patient_id`, `polyclinic_id`, `doctor_id`, `guarantor_id` | Layer poli / pelayanan |
+| `patients` | Menyimpan identitas permanen pasien | `id` (bigint) | `medical_record_number`, `nik` | None | Dipisah dari transaksi kunjungan |
+| `outpatient_registrations` | Pencatatan administratif pendaftaran/booking | `id` (bigint) | None | `patient_id` | Layer pendaftaran awal tanpa nomor bisnis terpisah |
+| `outpatient_admissions` | Kunjungan/admisi pasien ke poliklinik | `id` (bigint) | `registration_number` | `registration_id`, `patient_id`, `polyclinic_id`, `doctor_id`, `guarantor_id` | Layer poli/pelayanan dengan nomor registrasi/kunjungan |
 | `polyclinics` | Master unit/poliklinik | `id` (int) | `code` | None | Referensi unit layanan rawat jalan |
 | `medical_personnel` | Master tenaga medis/dokter | `id` (int) | `code_dpjp` / `str` | None | Berisi data dokter dan atribut penunjang |
 | `guarantors` | Master penjamin/asuransi/BPJS | `id` (int) | `code` | None | Sumber pembiayaan |
@@ -16,7 +16,7 @@ Berikut adalah ringkasan tabel target untuk modul Outpatient (Rawat Jalan):
 
 ### 1. `patients`
 - `id`: bigint, PK, auto increment
-- `medical_record_number`: varchar(50), unique, not null (Nomor Rekam Medis)
+- `medical_record_number`: varchar(50), unique, not null (Nomor Rekam Medis, format baru 6 digit, legacy tetap dipertahankan)
 - `nik`: varchar(20), unique index, nullable (Nomor KTP/NIK)
 - `full_name`: varchar(100), not null
 - `gender`: enum('L','P'), nullable
@@ -28,33 +28,38 @@ Berikut adalah ringkasan tabel target untuk modul Outpatient (Rawat Jalan):
 - `religion`: varchar(30), nullable
 - `blood_type`: varchar(5), nullable
 - `marital_status`: varchar(30), nullable
-- `default_guarantor_id`: bigint, nullable, FK to guarantors
+- `status`: enum('active','deleted'), not null, default 'active'
 - `ihs_id`: varchar(100), nullable (SATUSEHAT ID)
 - `created_at`, `updated_at`, `deleted_at`: timestamp/datetime
 
 ### 2. `outpatient_registrations`
 - `id`: bigint, PK, auto increment
-- `registration_no`: varchar(50), unique, not null
 - `patient_id`: bigint, not null, FK to patients
 - `registration_date`: datetime, not null
-- `guarantor_id`: int, nullable, FK to guarantors
 - `bpjs_number`: varchar(50), nullable
 - `channel`: enum('offline','online'), default 'offline'
-- `status`: enum('draft','registered','cancelled'), not null
+- `status`: enum('draft','registered','cancelled','deleted'), not null
 - `created_at`, `updated_at`, `deleted_at`
 
 ### 3. `outpatient_admissions`
 - `id`: bigint, PK, auto increment
-- `admission_no`: varchar(50), unique, not null
-- `registration_id`: bigint, nullable, FK to outpatient_registrations
+- `registration_number`: varchar(50), unique, not null (format: RJ-YYYYMMDD-0001)
+- `admission_no`: varchar(50), nullable (tidak digunakan)
+- `registration_id`: bigint, not null, FK to outpatient_registrations
 - `patient_id`: bigint, not null, FK to patients
 - `polyclinic_id`: int, not null, FK to polyclinics
 - `doctor_id`: int, nullable, FK to medical_personnel
+- `guarantor_id`: int, nullable, FK to guarantors
 - `admission_time`: datetime, not null
 - `discharge_time`: datetime, nullable
+- `service_date`: date, not null (tanggal pelayanan untuk constraint)
 - `entry_mode`: varchar(50), nullable (cara masuk)
-- `status`: enum('waiting','admitted','in_service','completed','cancelled'), not null
+- `status`: enum('waiting','admitted','in_service','completed','cancelled','deleted'), not null
 - `created_at`, `updated_at`, `deleted_at`
+
+**Composite Unique Constraint**: `registration_id` + `polyclinic_id` + `service_date`
+
+Satu registration dapat memiliki nol atau banyak admissions. Satu admission dimiliki tepat satu registration.
 
 ### 4. `polyclinics`
 - `id`: int, PK, auto increment
