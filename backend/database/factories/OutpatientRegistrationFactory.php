@@ -19,13 +19,9 @@ class OutpatientRegistrationFactory extends Factory
      */
     public function definition(): array
     {
-        $registrationNumbers = ['REG-'.$this->faker->unique()->numerify('##############')];
-
         return [
-            'registration_no' => $registrationNumbers[0],
             'patient_id' => Patient::factory(),
             'registration_date' => $this->faker->dateTime(),
-            'guarantor_id' => null,
             'bpjs_number' => $this->faker->bothify('BPJS-####-####-####'),
             'channel' => $this->faker->randomElement(['offline', 'online']),
             'status' => RegistrationStatus::Registered->value,

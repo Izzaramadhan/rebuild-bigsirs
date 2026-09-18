@@ -4,9 +4,9 @@ Berikut adalah ringkasan tabel target untuk modul Outpatient (Rawat Jalan):
 
 | Tabel | Tujuan | Primary Key | Business Key | Foreign Key | Catatan |
 | ----- | ------ | ----------- | ------------ | ----------- | ------- |
-| `patients` | Menyimpan identitas permanen pasien | `id` (bigint) | `medical_record_number`, `nik` | None | Dipisah dari transaksi kunjungan |
-| `outpatient_registrations` | Pencatatan administratif pendaftaran/booking | `id` (bigint) | None | `patient_id` | Layer pendaftaran awal tanpa nomor bisnis terpisah |
-| `outpatient_admissions` | Kunjungan/admisi pasien ke poliklinik | `id` (bigint) | `registration_number` | `registration_id`, `patient_id`, `polyclinic_id`, `doctor_id`, `guarantor_id` | Layer poli/pelayanan dengan nomor registrasi/kunjungan |
+| `patients` | Menyimpan identitas permanen pasien | `id` (bigint) | `medical_record_number`, `nik` | None | Dipisah dari transaksi kunjungan, tidak ada `default_guarantor_id` |
+| `outpatient_registrations` | Pencatatan administratif pendaftaran/booking | `id` (bigint) | None | `patient_id` | Layer pendaftaran awal tanpa nomor registrasi dan tanpa guarantor |
+| `outpatient_admissions` | Kunjungan/admisi pasien ke poliklinik | `id` (bigint) | `admission_no` | `registration_id`, `patient_id`, `polyclinic_id`, `doctor_id`, `guarantor_id` | Layer poli/pelayanan dengan nomor kunjungan tersimpan sebagai `admission_no` |
 | `polyclinics` | Master unit/poliklinik | `id` (int) | `code` | None | Referensi unit layanan rawat jalan |
 | `medical_personnel` | Master tenaga medis/dokter | `id` (int) | `code_dpjp` / `str` | None | Berisi data dokter dan atribut penunjang |
 | `guarantors` | Master penjamin/asuransi/BPJS | `id` (int) | `code` | None | Sumber pembiayaan |
@@ -43,8 +43,7 @@ Berikut adalah ringkasan tabel target untuk modul Outpatient (Rawat Jalan):
 
 ### 3. `outpatient_admissions`
 - `id`: bigint, PK, auto increment
-- `registration_number`: varchar(50), unique, not null (format: RJ-YYYYMMDD-0001)
-- `admission_no`: varchar(50), nullable (tidak digunakan)
+- `admission_no`: varchar(50), unique, not null (Nomor kunjungan, format: RJ-YYYYMMDD-NNNN)
 - `registration_id`: bigint, not null, FK to outpatient_registrations
 - `patient_id`: bigint, not null, FK to patients
 - `polyclinic_id`: int, not null, FK to polyclinics

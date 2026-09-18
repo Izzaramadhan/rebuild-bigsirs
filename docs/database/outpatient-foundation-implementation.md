@@ -27,16 +27,13 @@ Constraint utama yang diterapkan:
 - `guarantors.code` nullable dan unique jika diisi.
 - `polyclinics.code` unique.
 - `medical_personnel.str_number` dan `medical_personnel.dpjp_code` nullable dan unique jika diisi.
-- `outpatient_registrations.registration_no` unique.
-- `outpatient_admissions.admission_no` unique.
-- `outpatient_admissions.registration_id` nullable dan unique untuk menjaga relasi registration ke admission maksimal satu.
+- `outpatient_admissions.admission_no` unique (format rencana: `RJ-YYYYMMDD-NNNN`).
+- Constraint database `registration_id`, `polyclinic_id`, `service_date` pada admisi memastikan tidak ada duplikasi poli pada tanggal yang sama untuk satu pendaftaran. Aturan lintas pendaftaran akan diperiksa pada service/API.
 
 ## Relasi dan Delete Behavior
 
-- `patients.default_guarantor_id` -> `guarantors.id`, `nullOnDelete`.
 - `outpatient_registrations.patient_id` -> `patients.id`, `restrictOnDelete`.
-- `outpatient_registrations.guarantor_id` -> `guarantors.id`, `nullOnDelete`.
-- `outpatient_admissions.registration_id` -> `outpatient_registrations.id`, `nullOnDelete`.
+- `outpatient_admissions.registration_id` -> `outpatient_registrations.id`, `restrictOnDelete`.
 - `outpatient_admissions.patient_id` -> `patients.id`, `restrictOnDelete`.
 - `outpatient_admissions.polyclinic_id` -> `polyclinics.id`, `restrictOnDelete`.
 - `outpatient_admissions.doctor_id` -> `medical_personnel.id`, `nullOnDelete`.
@@ -138,14 +135,17 @@ Hasil koneksi default: `bigsirs_dev`. SQL preview hanya membuat atau mengubah ta
 
 ## Keputusan Mapping yang Diterapkan
 
-- Nomor rekam medis disimpan sebagai `patients.medical_record_number`, wajib dan unique.
+- Nomor rekam medis disimpan sebagai `patients.medical_record_number`, wajib dan unique (format baru direkomendasikan 6 digit, legacy dipertahankan saat migrasi).
 - NIK disimpan sebagai `varchar(20)`, nullable, dan unique jika diisi.
-- Registration dan admission dipisah menjadi dua tabel.
-- Relasi registration ke admission dijaga sebagai maksimal satu admission per registration.
-- Guarantor tersedia sebagai default pasien, guarantor registration, dan guarantor admission.
+- Registration dan admission dipisah menjadi dua tabel dengan relasi 1:N (Satu registration bisa memiliki banyak admission).
+- Tidak ada nomor pendaftaran. Nomor kunjungan menggunakan `admission_no` dengan format rencana `RJ-YYYYMMDD-NNNN`.
+- Penjamin (Guarantor) hanya melekat pada admisi (tidak ada di pasien atau pendaftaran).
 - Dokter pada admission bersifat opsional.
 - Status registration dan admission mengikuti business rules.
+- Aturan lintas pendaftaran (pasien yang sama, poli sama, tanggal sama) harus ditangani di service/API.
 - Antrean outpatient diimplementasikan sebagai tabel terpisah.
+- Soft delete digunakan pada pasien dan transaksi pendaftaran/admisi.
+- Corrective migration digunakan karena migration lama sudah pernah dijalankan.
 
 ## Keputusan yang Masih Terbuka
 
