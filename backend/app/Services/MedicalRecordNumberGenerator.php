@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -33,14 +34,30 @@ class MedicalRecordNumberGenerator
                 ->first();
 
             if ($row === null) {
-                DB::table('number_sequences')->insert([
-                    'key' => self::KEY,
-                    'last_number' => 1,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                try {
+                    DB::table('number_sequences')->insert([
+                        'key' => self::KEY,
+                        'last_number' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
 
-                return str_pad((string) 1, self::WIDTH, '0', STR_PAD_LEFT);
+                    return str_pad((string) 1, self::WIDTH, '0', STR_PAD_LEFT);
+                } catch (QueryException $e) {
+                    if ($e->errorInfo[1] === 1062) { // Duplicate entry
+                        // Lock and read again since another transaction just created it
+                        $row = DB::table('number_sequences')
+                            ->where('key', self::KEY)
+                            ->lockForUpdate()
+                            ->first();
+
+                        if ($row === null) {
+                            throw $e; // Should not happen
+                        }
+                    } else {
+                        throw $e;
+                    }
+                }
             }
 
             $next = $row->last_number + 1;
