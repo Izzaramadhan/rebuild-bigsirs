@@ -5,6 +5,10 @@ export default {
     return api.get('/sanctum/csrf-cookie')
   },
 
+  getCaptcha() {
+    return api.get('/captcha')
+  },
+
   login(credentials) {
     return api.post('/login', credentials)
   },
