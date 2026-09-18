@@ -26,6 +26,14 @@ export default defineConfig([
   ...pluginVue.configs['flat/essential'],
 
   {
+    name: 'app/shadcn-vue-component-overrides',
+    files: ['src/components/ui/**/*.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+
+  {
     ...pluginVitest.configs.recommended,
     files: ['src/**/__tests__/*'],
   },
