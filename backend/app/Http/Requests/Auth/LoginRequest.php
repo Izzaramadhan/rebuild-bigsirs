@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Services\CaptchaService;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -28,8 +29,9 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'username' => ['required', 'string', 'max:50', 'alpha_dash'],
             'password' => ['required', 'string'],
+            'captcha' => ['required', 'string'],
         ];
     }
 
@@ -42,11 +44,21 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'))) {
+        $captchaService = app(CaptchaService::class);
+        // Validate Captcha
+        if (! $captchaService->validate($this->input('captcha'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'captcha' => 'Kode keamanan tidak sesuai atau sudah kedaluwarsa.',
+            ]);
+        }
+
+        if (! Auth::attempt($this->only('username', 'password'))) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'username' => 'Username atau kata sandi tidak sesuai.',
             ]);
         }
 
@@ -69,7 +81,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
+            'username' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -81,6 +93,7 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->input('email')).'|'.$this->ip());
+        // Use lowercase trimmed username + IP to prevent multiple case-variations
+        return Str::transliterate(Str::lower(trim($this->input('username'))).'|'.$this->ip());
     }
 }
