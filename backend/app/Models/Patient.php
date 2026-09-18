@@ -5,7 +5,6 @@ namespace App\Models;
 use Database\Factories\PatientFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -27,7 +26,6 @@ class Patient extends Model
         'religion',
         'blood_type',
         'marital_status',
-        'default_guarantor_id',
         'ihs_id',
     ];
 
@@ -36,11 +34,6 @@ class Patient extends Model
         return [
             'birth_date' => 'date',
         ];
-    }
-
-    public function defaultGuarantor(): BelongsTo
-    {
-        return $this->belongsTo(Guarantor::class, 'default_guarantor_id');
     }
 
     public function outpatientRegistrations(): HasMany

@@ -9,5 +9,6 @@
 | Composite unique: registration_id + polyclinic_id + service_date | approved | Supervisor decision 2026-09-17 | Mencegah duplikasi admission ke poli sama di tanggal sama | Tim Database | Implementasi |
 | Guarantor melekat pada admission | approved | Supervisor decision 2026-09-17 | Transaksi penjamin per kunjungan | Tim Backend | Hapus guarantor_id dari patients dan registrations |
 | Format nomor RM pasien baru 6 digit | approved | Supervisor decision 2026-09-17 | Sequence global, legacy tetap dipertahankan | Tim Backend | Buat generator |
-| Nomor registrasi pada admission: RJ-YYYYMMDD-0001 | approved | Supervisor decision 2026-09-17 | Sequence reset harian, unik global | Tim Backend | Buat generator |
+| Tidak ada nomor registration; Nomor kunjungan pada admisi (admission_no): RJ-YYYYMMDD-NNNN | approved | Supervisor decision 2026-09-17 | Sequence reset harian, unik global | Tim Backend | Buat generator |
 | Soft delete dengan status `deleted` | approved | Supervisor decision 2026-09-17 | Audit trail, berbeda dari `cancelled` | Tim Backend | Implementasi |
+| Penanganan Corrective Migration | approved | Supervisor decision 2026-09-17 | Harus membuat migration baru alih-alih mengedit file lama karena migration lama sudah berstatus `Ran` | Tim Database | Implementasi |
