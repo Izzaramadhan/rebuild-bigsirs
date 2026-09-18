@@ -6,7 +6,7 @@
 3. **Pendaftaran (`outpatient_registrations`)**: Mewakili pencatatan administratif awal (booking/kedatangan), tanpa nomor registrasi bisnis terpisah.
 4. **Admisi (`outpatient_admissions`)**: Menandai kunjungan pasien ke poliklinik tertentu. Satu registration dapat memiliki lebih dari satu admission.
 5. **Penjamin (`guarantors`)**: Melekat pada outpatient admission sebagai snapshot penjamin transaksi.
-6. **Nomor Registrasi/Kunjungan**: Disimpan pada outpatient admission dengan format `RJ-YYYYMMDD-0001`. Sequence dimulai kembali pada tanggal berikutnya, sedangkan tanggal membuat nilainya unik secara global.
+6. **Nomor Kunjungan**: Disimpan pada outpatient admission sebagai `admission_no` dengan format yang direkomendasikan `RJ-YYYYMMDD-NNNN`. Tidak ada nomor registrasi bisnis. Sequence dimulai kembali pada tanggal berikutnya, sedangkan tanggal membuat nilainya unik secara global.
 7. **Soft Delete**: Pasien, registration, dan admission menggunakan soft delete. Penghapusan mengubah status menjadi `deleted` dan mengisi `deleted_at` dalam satu transaksi.
 
 ## Constraint Admission (Approved)
@@ -14,7 +14,9 @@
 - Satu registration boleh masuk ke poliklinik berbeda pada tanggal pelayanan yang sama.
 - Satu registration boleh masuk ke poliklinik yang sama pada tanggal pelayanan berbeda.
 - Satu registration tidak boleh memiliki dua admission ke poliklinik yang sama pada tanggal pelayanan yang sama.
+- Aturan duplikasi pasien lintas pendaftaran (registration berbeda) akan diperiksa pada level service/API.
 - Constraint database: `registration_id` + `polyclinic_id` + `service_date`.
+- Secara arsitektur, corrective migration (bukan edit schema) diperlukan karena migration lama sudah berstatus `Ran` pada database development.
 
 ## Status Transaksi (Approved)
 

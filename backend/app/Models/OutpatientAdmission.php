@@ -24,6 +24,7 @@ class OutpatientAdmission extends Model
         'guarantor_id',
         'admission_time',
         'discharge_time',
+        'service_date',
         'entry_mode',
         'status',
     ];
@@ -33,6 +34,7 @@ class OutpatientAdmission extends Model
         return [
             'admission_time' => 'datetime',
             'discharge_time' => 'datetime',
+            'service_date' => 'date',
             'status' => AdmissionStatus::class,
         ];
     }

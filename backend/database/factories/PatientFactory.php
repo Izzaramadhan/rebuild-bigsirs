@@ -30,7 +30,6 @@ class PatientFactory extends Factory
             'religion' => $this->faker->randomElement(['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']),
             'blood_type' => $this->faker->randomElement(['A', 'B', 'AB', 'O', '']),
             'marital_status' => $this->faker->randomElement(['Single', 'Married', 'Divorced', 'Widowed']),
-            'default_guarantor_id' => null,
             'ihs_id' => 'ID-NIK-'.$this->faker->unique()->numerify('##############'),
         ];
     }
