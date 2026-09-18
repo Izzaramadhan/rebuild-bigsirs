@@ -27,7 +27,7 @@ describe('Router Guards', () => {
     await router.push('/login')
     await router.isReady()
 
-    expect(router.currentRoute.value.name).toBe('home')
+    expect(router.currentRoute.value.name).toBe('dashboard')
   })
 
   it('allows guest to access login route', async () => {
@@ -39,12 +39,23 @@ describe('Router Guards', () => {
     expect(router.currentRoute.value.name).toBe('login')
   })
 
-  it('allows user to access home route', async () => {
+  it('allows user to access dashboard route', async () => {
     authStore.user = { id: 1, name: 'Test' }
     await router.push('/login') // trigger navigation away
     await router.push('/')
     await router.isReady()
 
-    expect(router.currentRoute.value.name).toBe('home')
+    expect(router.currentRoute.value.name).toBe('dashboard')
+  })
+
+  it('renders Dashboard inside AppLayout', () => {
+    const rootRoute = router.options.routes.find(r => r.path === '/')
+    expect(rootRoute.component.__name || rootRoute.component.name).toBe('AppLayout')
+    expect(rootRoute.children.some(c => c.name === 'dashboard')).toBe(true)
+  })
+
+  it('renders Login outside AppLayout', () => {
+    const loginRoute = router.options.routes.find(r => r.path === '/login')
+    expect(loginRoute.component.__name || loginRoute.component.name).not.toBe('AppLayout')
   })
 })

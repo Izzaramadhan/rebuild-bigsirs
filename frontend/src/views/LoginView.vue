@@ -38,7 +38,9 @@ const handleSubmit = async () => {
       password: password.value,
       captcha: captcha.value
     })
-    router.push({ name: 'home' })
+
+    // Use replace to prevent going back to login
+    router.replace({ name: 'dashboard' })
   } catch (err) {
     if (!err.response) {
       networkError.value = 'Tidak dapat terhubung ke server.'
